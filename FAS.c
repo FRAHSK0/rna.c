@@ -1,0 +1,304 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+//// FIND SPIKE 
+#define MAX_GENOME 30000
+#define MAX_LINE   1024
+
+#define MATCH 1
+#define MISMATCH -1
+#define GAP -2
+#define MAXLINE 4000 
+
+int max(int z, int z1, int z3) {
+    int m;
+    m=z;
+    if (z1 > m)
+        m = z1;
+    if (z3 > m)
+        m = z3;
+
+    if (m < 0) 
+        return 0;
+        
+
+    else  
+    return m;
+    
+
+}
+
+void smithwatermanmatrix(char Genoma[], char Spike [],int colonne , int righe , int *inizio, int *termine,int *M) {
+   int **matrice = malloc(righe * sizeof(int *));
+if (matrice == NULL) {
+    printf("Errore di allocazione matrice righe\n");
+    exit(1);
+}
+
+// Alloca ogni riga
+for (int i = 0; i < righe; i++) {
+    matrice[i] = calloc(colonne, sizeof(int));  // inizializza a 0
+    if (matrice[i] == NULL) {
+        printf("Errore di allocazione matrice colonna\n");
+        exit(1);
+    }
+}
+
+       
+
+for(int riga=1 ;riga<righe;riga=riga+1){ 
+
+    for(int colonna=1 ;colonna<colonne;colonna=colonna+1){ 
+    int z=0;
+    int z1=0;
+    int z2=0;
+    int z3=0;
+    //W=Gopen​+(n−1)⋅Gextension​
+    z=matrice[riga][colonna-1]+GAP;
+    z1=matrice[riga-1][colonna]+GAP;
+ 
+        if(Genoma[colonna-1]==Spike[riga-1]) {
+        z2=MATCH;
+        }
+        else {
+        z2=MISMATCH;
+        }
+    z3=matrice[riga-1][colonna-1]+z2;
+        if(z<0) {
+        z=0;
+        }
+        if(z1<0) {
+        z1=0;
+        }
+        if(z3<0) {
+        z3=0;
+        }
+    matrice[riga][colonna]=max(z,z1,z3);
+}
+
+} 
+int massimo =0;
+int x=0;
+int y=0;
+        
+for (int riga= 0; riga <righe; riga++) {
+  
+for (int colonna= 0; colonna <colonne; colonna++){
+if (matrice[riga][colonna]>massimo) {
+    massimo=matrice[riga][colonna];
+    x=riga;
+    y=colonna;
+    }
+  
+}
+ 
+}    
+
+ // printf ("il massimo è %d, è in posizione riga %d colonna %d \n",massimo,x, y);  
+ *M=massimo;
+int Fine;
+Fine=y;
+int msm=0;
+int gapsd=0;
+int gapsi=0;
+do {
+
+int maxm=0;
+int R=0;
+int R1 =0;
+int R3=0;
+R=matrice[x-1][y-1];
+R1=matrice[x-1][y];
+R3=matrice[x][y-1];
+maxm=max(R,R1,R3);
+if(maxm==R) {
+y=y-1;
+x=x-1;
+  if(Genoma[y]!=Spike[x]) 
+     msm=msm+1;
+    //printf("missmatch in posizione %d \n",y);
+        
+}
+else if(maxm==R1) {
+    gapsd=gapsd+1;
+y=y;
+x=x-1;   
+//printf("delezione rispetto alla spike in posizione %d \n", y);
+}
+else if(maxm==R3) {
+    gapsi=gapsi+1;
+y=y-1;
+x=x;   
+//printf("inserzione rispetto alla spike in posizione %d \n", y);
+}
+
+
+} while(matrice[x][y]!=0);
+
+*termine=Fine;
+*inizio=y+1;
+for (int i = 0; i < righe; i++) {
+    free(matrice[i]);
+}
+free(matrice);
+
+
+
+}    
+
+
+
+int main(void) {
+    
+   
+  FILE *FILEGENOMA= fopen("FRIULI.fasta", "r");//APERTURA FILE 
+    if (FILEGENOMA == NULL) {
+        perror("Errore apertura file");
+        return 1;
+    }
+    char GENOMA[MAX_GENOME + 1];  // +1 per '\0'
+   
+
+    char lineGenoma[MAX_LINE];
+        int lenGenoma = 0;
+
+
+    while (fgets(lineGenoma, MAX_LINE, FILEGENOMA)) {   // MESSO IL FILE NELL'ARRAY
+
+        // Salta intestazione
+        if (lineGenoma[0] == '>') continue;
+
+        // Rimuove newline
+        lineGenoma[strcspn(lineGenoma, "\n")] = '\0';
+
+        // Copia caratteri uno a uno
+        for (int i = 0; lineGenoma[i] != '\0'; i++) {
+            if (lenGenoma < MAX_GENOME) {
+                GENOMA[lenGenoma] = lineGenoma[i];
+                lenGenoma++;
+            }
+        }
+    }
+
+    GENOMA[lenGenoma] = '\0';
+   fclose(FILEGENOMA); // CHIUSURA FILE 
+ 
+   printf("Lunghezza del genoma: %d basi\n", lenGenoma); 
+
+
+char rif_spike[]="ATGTTTGTTTTTCTTGTTTTATTGCCACTAGTCTCTAGTCAGTGTGTTAATCTTACAACCAGAACTCAATTACCCCCTGCATACACTAATTCTTTCACACGTGGTGTTTATTACCCTGACAAAGTTTTCAGATCCTCAGTTTTACATTCAACTCAGGACTTGTTCTTACCTTTCTTTTCCAATGTTACTTGGTTCCATGCTATACATGTCTCTGGGACCAATGGTACTAAGAGGTTTGATAACCCTGTCCTACCATTTAATGATGGTGTTTATTTTGCTTCCACTGAGAAGTCTAACATAATAAGAGGCTGGATTTTTGGTACTACTTTAGATTCGAAGACCCAGTCCCTACTTATTGTTAATAACGCTACTAATGTTGTTATTAAAGTCTGTGAATTTCAATTTTGTAATGATCCATTTTTGGGTGTTTATTACCACAAAAACAACAAAAGTTGGATGGAAAGTGAGTTCAGAGTTTATTCTAGTGCGAATAATTGCACTTTTGAATATGTCTCTCAGCCTTTTCTTATGGACCTTGAAGGAAAACAGGGTAATTTCAAAAATCTTAGGGAATTTGTGTTTAAGAATATTGATGGTTATTTTAAAATATATTCTAAGCACACGCCTATTAATTTAGTGCGTGATCTCCCTCAGGGTTTTTCGGCTTTAGAACCATTGGTAGATTTGCCAATAGGTATTAACATCACTAGGTTTCAAACTTTACTTGCTTTACATAGAAGTTATTTGACTCCTGGTGATTCTTCTTCAGGTTGGACAGCTGGTGCTGCAGCTTATTATGTGGGTTATCTTCAACCTAGGACTTTTCTATTAAAATATAATGAAAATGGAACCATTACAGATGCTGTAGACTGTGCACTTGACCCTCTCTCAGAAACAAAGTGTACGTTGAAATCCTTCACTGTAGAAAAAGGAATCTATCAAACTTCTAACTTTAGAGTCCAACCAACAGAATCTATTGTTAGATTTCCTAATATTACAAACTTGTGCCCTTTTGGTGAAGTTTTTAACGCCACCAGATTTGCATCTGTTTATGCTTGGAACAGGAAGAGAATCAGCAACTGTGTTGCTGATTATTCTGTCCTATATAATTCCGCATCATTTTCCACTTTTAAGTGTTATGGAGTGTCTCCTACTAAATTAAATGATCTCTGCTTTACTAATGTCTATGCAGATTCATTTGTAATTAGAGGTGATGAAGTCAGACAAATCGCTCCAGGGCAAACTGGAAAGATTGCTGATTATAATTATAAATTACCAGATGATTTTACAGGCTGCGTTATAGCTTGGAATTCTAACAATCTTGATTCTAAGGTTGGTGGTAATTATAATTACCTGTATAGATTGTTTAGGAAGTCTAATCTCAAACCTTTTGAGAGAGATATTTCAACTGAAATCTATCAGGCCGGTAGCACACCTTGTAATGGTGTTGAAGGTTTTAATTGTTACTTTCCTTTACAATCATATGGTTTCCAACCCACTAATGGTGTTGGTTACCAACCATACAGAGTAGTAGTACTTTCTTTTGAACTTCTACATGCACCAGCAACTGTTTGTGGACCTAAAAAGTCTACTAATTTGGTTAAAAACAAATGTGTCAATTTCAACTTCAATGGTTTAACAGGCACAGGTGTTCTTACTGAGTCTAACAAAAAGTTTCTGCCTTTCCAACAATTTGGCAGAGACATTGCTGACACTACTGATGCTGTCCGTGATCCACAGACACTTGAGATTCTTGACATTACACCATGTTCTTTTGGTGGTGTCAGTGTTATAACACCAGGAACAAATACTTCTAACCAGGTTGCTGTTCTTTATCAGGATGTTAACTGCACAGAAGTCCCTGTTGCTATTCATGCAGATCAACTTACTCCTACTTGGCGTGTTTATTCTACAGGTTCTAATGTTTTTCAAACACGTGCAGGCTGTTTAATAGGGGCTGAACATGTCAACAACTCATATGAGTGTGACATACCCATTGGTGCAGGTATATGCGCTAGTTATCAGACTCAGACTAATTCTCCTCGGCGGGCACGTAGTGTAGCTAGTCAATCCATCATTGCCTACACTATGTCACTTGGTGCAGAAAATTCAGTTGCTTACTCTAATAACTCTATTGCCATACCCACAAATTTTACTATTAGTGTTACCACAGAAATTCTACCAGTGTCTATGACCAAGACATCAGTAGATTGTACAATGTACATTTGTGGTGATTCAACTGAATGCAGCAATCTTTTGTTGCAATATGGCAGTTTTTGTACACAATTAAACCGTGCTTTAACTGGAATAGCTGTTGAACAAGACAAAAACACCCAAGAAGTTTTTGCACAAGTCAAACAAATTTACAAAACACCACCAATTAAAGATTTTGGTGGTTTTAATTTTTCACAAATATTACCAGATCCATCAAAACCAAGCAAGAGGTCATTTATTGAAGATCTACTTTTCAACAAAGTGACACTTGCAGATGCTGGCTTCATCAAACAATATGGTGATTGCCTTGGTGATATTGCTGCTAGAGACCTCATTTGTGCACAAAAGTTTAACGGCCTTACTGTTTTGCCACCTTTGCTCACAGATGAAATGATTGCTCAATACACTTCTGCACTGTTAGCGGGTACAATCACTTCTGGTTGGACCTTTGGTGCAGGTGCTGCATTACAAATACCATTTGCTATGCAAATGGCTTATAGGTTTAATGGTATTGGAGTTACACAGAATGTTCTCTATGAGAACCAAAAATTGATTGCCAACCAATTTAATAGTGCTATTGGCAAAATTCAAGACTCACTTTCTTCCACAGCAAGTGCACTTGGAAAACTTCAAGATGTGGTCAACCAAAATGCACAAGCTTTAAACACGCTTGTTAAACAACTTAGCTCCAATTTTGGTGCAATTTCAAGTGTTTTAAATGATATCCTTTCACGTCTTGACAAAGTTGAGGCTGAAGTGCAAATTGATAGGTTGATCACAGGCAGACTTCAAAGTTTGCAGACATATGTGACTCAACAATTAATTAGAGCTGCAGAAATCAGAGCTTCTGCTAATCTTGCTGCTACTAAAATGTCAGAGTGTGTACTTGGACAATCAAAAAGAGTTGATTTTTGTGGAAAGGGCTATCATCTTATGTCCTTCCCTCAGTCAGCACCTCATGGTGTAGTCTTCTTGCATGTGACTTATGTCCCTGCACAAGAAAAGAACTTCACAACTGCTCCTGCCATTTGTCATGATGGAAAAGCACACTTTCCTCGTGAAGGTGTCTTTGTTTCAAATGGCACACACTGGTTTGTAACACAAAGGAATTTTTATGAACCACAAATCATTACTACAGACAACACATTTGTGTCTGGTAACTGTGATGTTGTAATAGGAATTGTCAACAACACAGTTTATGATCCTTTGCAACCTGAATTAGACTCATTCAAGGAGGAGTTAGATAAATATTTTAAGAATCATACATCACCAGATGTTGATTTAGGTGACATCTCTGGCATTAATGCTTCAGTTGTAAACATTCAAAAAGAAATTGACCGCCTCAATGAGGTTGCCAAGAATTTAAATGAATCTCTCATCGATCTCCAAGAACTTGGAAAGTATGAGCAGTATATAAAATGGCCATGGTACATTTGGCTAGGTTTTATAGCTGGCTTGATTGCCATAGTAATGGTGACAATTATGCTTTGCTGTATGACCAGTTGCTGTAGTTGTCTCAAGGGCTGTTGTTCTTGTGGATCCTGCTGCAAATTTGATGAAGACGACTCTGAGCCAGTGCTCAAAGGAGTCAAATTACATTACACATAA";
+
+
+printf("\nLunghezza della sequenza spike di WUHAN 1 è: %zu basi \n", strlen(rif_spike));
+
+
+
+// Spike con 'Z' iniziale
+char rif_spike_Z[3823];
+rif_spike_Z[0] = 'Z';
+for(int i = 0; i < 3823; i++) {
+    rif_spike_Z[i+1] = rif_spike[i];
+}
+char GENOMA_Z[lenGenoma + 1];  // +1 per 'Z'
+
+GENOMA_Z[0] = 'Z';  // primo elemento = Z
+
+// Copia il resto del genoma
+for (int i = 0; i < lenGenoma; i++) {
+    GENOMA_Z[i + 1] = GENOMA[i];
+}
+
+
+       int righe=3823;
+       int colonne=lenGenoma+1;
+        int termine;
+        int inizio;
+        int M;
+       smithwatermanmatrix(GENOMA_Z,rif_spike_Z,colonne,righe,&inizio,&termine,&M);
+       printf("la spike inizia in posizione %d e finisce in posizione %d il massimo è %d",inizio,termine, M);
+       /* 
+
+         const char *varianti[] = {
+        "alfa ",
+        "omicron",
+        "beta "
+        };
+
+         int matricemassimi [numero variant];
+       for ( array varizanti i+1)(
+       int M=0
+        smith waterman(spike trovta,spike[i],lunghezzaspiketrovata, lunghezzaspike[i],&M)
+
+        int matricemassimi [i]=M; 
+
+       )
+        int Ma
+         Ma=arraymassimi[0];
+         p=0
+       for( int i=1 to arraymassimilunghezza i=i+1)(
+       
+        if (arraymassimi[i]>MA)
+            MA=arraymassimi[i]
+            p=i
+       )
+       printf("la variante è %s", varianti[i])
+        FILE *f = fopen("sequenze.fasta", "r");
+    /*if (!f) {
+        printf("Errore apertura file\n");
+        return 1;
+    }
+
+    char **sequenze = NULL;
+    int n = 0;
+
+    char line[MAXLINE];
+    char *seq_buffer = NULL;
+    size_t seq_len = 0;
+
+    while (fgets(line, MAXLINE, f)) {
+
+        // rimuove newline
+        line[strcspn(line, "\n")] = 0;
+
+        if (line[0] == '>') {
+            // salva sequenza precedente
+            if (seq_buffer) {
+                sequenze = realloc(sequenze, (n+1) * sizeof(char*));
+                sequenze[n++] = seq_buffer;
+                seq_buffer = NULL;
+                seq_len = 0;
+            }
+            // ignora il nome, fai tu l'array dei nomi
+        } else {
+            size_t l = strlen(line);
+            seq_buffer = realloc(seq_buffer, seq_len + l + 1);
+            memcpy(seq_buffer + seq_len, line, l);
+            seq_len += l;
+            seq_buffer[seq_len] = 0;
+        }
+    }
+
+    // salva ultima sequenza
+    if (seq_buffer) {
+        sequenze = realloc(sequenze, (n+1) * sizeof(char*));
+        sequenze[n++] = seq_buffer;
+    }
+
+    fclose(f);
+
+    // stampa lunghezze
+    for (int i = 0; i < n; i++)
+        printf("Sequenza %d -> len %lu\n", i+1, strlen(sequenze[i]));
+
+    // libera memoria
+    for (int i = 0; i < n; i++)
+        free(sequenze[i]);
+    free(sequenze);
+*/
+
+
+
+
+    return 0;
+
+}

@@ -150,7 +150,7 @@ free(matrice);
 int main(void) {
     
    
-  FILE *FILEGENOMA= fopen("FRIULI.fasta", "r");//APERTURA FILE 
+  FILE *FILEGENOMA= fopen("MATI.fasta", "r");//APERTURA FILE 
     if (FILEGENOMA == NULL) {
         perror("Errore apertura file");
         return 1;
@@ -201,17 +201,67 @@ char GENOMA_Z[lenGenoma + 1];  // +1 per 'Z'
 GENOMA_Z[0] = 'Z';  // primo elemento = Z
 
 // Copia il resto del genoma
-for (int i = 0; i < lenGenoma; i++) {
+    for (int i = 0; i < lenGenoma; i++) {
     GENOMA_Z[i + 1] = GENOMA[i];
-}
+    }
 
 
        int righe=3823;
        int colonne=lenGenoma+1;
-       smithwatermanmatrix(GENOMA_Z,rif_spike_Z,colonne,righe);
+    smithwatermanmatrix(GENOMA_Z,rif_spike_Z,colonne,righe);
+    char idiciassetteiniziali[18];
+    char idiciassettefinali[18];
+    int x1;
+    int x2;
+    int max1=0;
+    int max2=0;
+    int c1;
+    int c2;
+        for( int i =0 ; i<18; i=i+1) {
+   
+            idiciassetteiniziali[i]=rif_spike_Z[i];
 
+            }
+      
+         int j=0;
+         
+         for(int i=3821-17; i<3823; i=i+1) {
+            j++;
+            
+            idiciassettefinali[j]=rif_spike[i];
 
+            }
+      
+         for( int i=1;  i<lenGenoma-17; i=i+1){
+                  c1=0;
+                  c2=0;
+            for( int j=1;  j<18; j++){
+        
+                if(GENOMA_Z[i+j-1]==idiciassetteiniziali[j]) {
+                c1++;
+                }
+           
+                if(GENOMA_Z[i+j-1]==idiciassettefinali[j]) {
+                c2++;
+                }
+                }
+
+        if(c1>max1) {
+            max1=c1;
+            x1=i;
+            }
+        if(c2>max2) {
+        max2=c2;
+        x2=i+17;
+        }
+
+    }
+    printf("%d e %d\n", x1, x2);
+    
+    
 
     return 0;
 
+
 }
+
