@@ -208,7 +208,7 @@ GENOMA_Z[0] = 'Z';  // primo elemento = Z
 
        int righe=3823;
        int colonne=lenGenoma+1;
-    smithwatermanmatrix(GENOMA_Z,rif_spike_Z,colonne,righe);
+    //smithwatermanmatrix(GENOMA_Z,rif_spike_Z,colonne,righe);
     char idiciassetteiniziali[18];
     char idiciassettefinali[18];
     int x1;
