@@ -150,7 +150,7 @@ free(matrice);
 int main(void) {
     
    
-  FILE *FILEGENOMA= fopen("MATI.fasta", "r");//APERTURA FILE 
+  FILE *FILEGENOMA= fopen("ILLINOIS.fasta", "r");//APERTURA FILE 
     if (FILEGENOMA == NULL) {
         perror("Errore apertura file");
         return 1;
